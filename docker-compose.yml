@@ -1,0 +1,48 @@
+version: '3.7'
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:latest
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_USER: xkcd
+      MYSQL_PASSWORD: 4dmin
+      MYSQL_ROOT_PASSWORD: 4dmin
+      MYSQL_DATABASE: bigdata
+    networks:
+      bigdatanet:
+        ipv4_address: 172.18.0.4 
+        
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    restart: always
+    ports:
+      - "80:80"
+    networks:
+      bigdatanet:
+        ipv4_address: 172.18.0.5
+    volumes:
+      - ./src:/var/www/html 
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+    links:
+      - php-fpm      
+    environment:
+      DB_MYSQL_HOST: "172.18.0.4"
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: "xkcd"
+      DB_MYSQL_PASSWORD: "4dmin"
+
+  php-fpm:
+      container_name: php-fpm
+      build: .
+      volumes:
+          - ./src:/var/www/html
+      networks:
+        bigdatanet:
+          ipv4_address: 172.18.0.6
+networks:
+  bigdatanet:
+    external: true
